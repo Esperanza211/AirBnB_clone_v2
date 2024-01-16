@@ -63,6 +63,11 @@ The initial stage of a student effort to create an exact copy of the AirBnB webs
      * destroy - Destroys an object based on class and UUID
  
      * update - Updates existing attributes an object based on class name and UUID
+
+## Authors
+ Amal ELKOUCHE - [Github](https://github.com/Esperanza211)
  
+ IMANE BENHADDA - [Github](https://github.com/imanebenhadda)
+
 <br>
 <br>
