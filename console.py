@@ -248,59 +248,86 @@ class HBNBCommand(cmd.Cmd):
 
     def do_update(self, args):
         """ Updates a certain object with new info """
-        class_Name, obj_id, *update_args= args.split()
+        class_Name = class_id = att_name = att_val = kwargs = ''
 
         # isolate cls from id/args, ex: (<cls>, delim, <id/args>)
-        
-        if not class_Name:
-        	print("** class name missing **")
-		return
-
-        # check for valid class name
-        if class_name not in self.classes:
+        args = args.partition(" ")
+        if args[0]:
+            class_Name = args[0]
+        else:  # class name not present
+            print("** class name missing **")
+            return
+        if class_name not in self.classes:  # class name invalid
             print("** class doesn't exist **")
             return
 
-        # check for instance id
-        if not obj_id:
+        # isolate id from args
+        args = args[2].partition(" ")
+        if args[0]:
+            class_id = args[0]
+        else:  # id not present
             print("** instance id missing **")
             return
 
         # generate key from class and id
-        key = f"{class_name}.{obj_id}"
+        key = class_Name + "." + class_id
 
-        # check if key is present
+        # determine if key is present
         if key not in self.storage.all():
             print("** no instance found **")
             return
 
+        # first determine if kwargs or args
+        if '{' in args[2] and '}' in args[2] and type(eval(args[2])) is dict:
+            kwargs = eval(args[2])
+            args = []  # reformat kwargs into list, ex: [<name>, <value>, ...]
+            for key, value in kwargs.items():
+                args.append(key)
+                args.append(value)
+        else:  # isolate args
+            args = args[2]
+            if args and args[0] == '\"':  # check for quoted arg
+                second_quote = args.find('\"', 1)
+                att_name = args[1:second_quote]
+                args = args[second_quote + 1:]
+
+            args = args.partition(' ')
+
+            # if att_name was not quoted arg
+            if not att_name and args[0] != ' ':
+                att_name = args[0]
+            # check for quoted val arg
+            if args[2] and args[2][0] == '\"':
+                att_val = args[2][1:args[2].find('\"', 1)]
+
+            # if att_val was not quoted arg
+            if not att_val and args[2]:
+                att_val = args[2].partition(' ')[0]
+
+            args = [att_name, att_val]
+
         # retrieve dictionary of current objects
         new_dict = self.storage.all()[key]
 
-        # iterate through attribute names and values
-        for i in range(0, len(update_args), 2):
-            att_name = update_args[i]
-            att_val = update_args[i + 1]
+        # iterate through attr names and values
+        for i, att_name in enumerate(args):
+            # block only runs on even iterations
+            if (i % 2 == 0):
+                att_val = args[i + 1]  # following item is value
+                if not att_name:  # check for att_name
+                    print("** attribute name missing **")
+                    return
+                if not att_val:  # check for att_value
+                    print("** value missing **")
+                    return
+                # type cast as necessary
+                if att_name in HBNBCommand.types:
+                    att_val = HBNBCommand.types[att_name](att_val)
 
-            # check for attribute name
-            if not att_name:
-                print("** attribute name missing **")
-                return
-
-            # check for attribute value
-            if not att_val:
-                print("** value missing **")
-                return
-
-            # type cast as necessary
-            if att_name in self.types:
-                att_val = self.types[att_name](att_val)
-
-            # update dictionary with name, value pair
-            new_dict.__dict__.update({att_name: att_val})
+                # update dictionary with name, value pair
+                new_dict.__dict__.update({att_name: att_val})
 
         new_dict.save()  # save updates to file
-
         
 
     def help_update(self):
