@@ -1,32 +1,28 @@
 #!/usr/bin/python3
 """ State Module for HBNB project """
 from models.base_model import BaseModel, Base
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
-from models.city import City
 from os import getenv
-
-storage_type = getenv("HBNB_TYPE_STORAGE")
+from models.city import City
 
 
 class State(BaseModel, Base):
-    """ State class """
-
+    """a state class that inherits from BaseModel"""
     __tablename__ = 'states'
-    if storage_type == "db":
-        name = Column(String(128), nullable=False)
-        cities = relationship('City', cascade="all,delete", backref="state")
-
+    name = Column(String(128), nullable=False)
+    if getenv("HBNB_TYPE_STORAGE") == "db":
+        cities = relationship("City", back_populates="states",
+                              cascade="all , delete")
     else:
         name = ""
 
         @property
         def cities(self):
-            """getter for cities related to this state"""
+            """getter that returns the cities with state_id"""
             from models import storage
-            citiesList = []
-            citiesAll = storage.all(City)
-            for city in citiesAll.values():
+            city_instname = []
+            for city in storage.all(City).values():
                 if city.state_id == self.id:
-                    citiesList.append(city)
-            return citiesList
+                    city_instname.append(city)
+            return city_instname
