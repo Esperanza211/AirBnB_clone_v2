@@ -103,14 +103,13 @@ class HBNBCommand(cmd.Cmd):
         """ Handles EOF to exit program """
         print()
         exit()
+    def emptyline(self):
+        """ Overrides the emptyline method of CMD """
+        pass
 
     def help_EOF(self):
         """ Prints the help documentation for EOF """
         print("Exits the program without formatting\n")
-
-    def emptyline(self):
-        """ Overrides the emptyline method of CMD """
-        pass
 
     def do_create(self, args):
         """Create an object of any class"""
